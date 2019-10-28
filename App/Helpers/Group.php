@@ -17,16 +17,22 @@ class Group implements \ConfigApp
         $this->vkObj = new VKApiClient();
     }
 
-    public function getUserProfile(string $user_id) : array
+    public function getUserProfile(string $user_id) : ?array
     {
         try {
-            return $this->vkObj->users()->get(static::VK_TOKEN, [
+            $user = $this->vkObj->users()->get(static::VK_TOKEN, [
                 'user_ids' => [$user_id],
                 'fields' => ['photo_200']
             ]);
+
+            if($user[0]['first_name'] === 'DELETED') {
+                return null;
+            } else {
+                return $user;
+            }
         } catch (VKApiException $e) {
             file_put_contents("error_logs.txt", $e->getErrorMessage() . PHP_EOL, FILE_APPEND);
-            die();
+            return null;
         } catch (VKClientException $e) {
             file_put_contents("error_logs.txt", $e->getErrorMessage() . PHP_EOL, FILE_APPEND);
             die();

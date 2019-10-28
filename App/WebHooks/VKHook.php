@@ -3,8 +3,8 @@ namespace App\WebHooks;
 
 use App\Helpers\Group;
 use App\Helpers\Image;
+use App\Helpers\User;
 use VK\CallbackApi\Server\VKCallbackApiServerHandler;
-use VK\Client\VKApiClient;
 
 class VKHook extends VKCallbackApiServerHandler
 {
@@ -22,9 +22,24 @@ class VKHook extends VKCallbackApiServerHandler
 
     public function messageNew(int $group_id, ?string $secret, array $object)
     {
-        file_put_contents('logs.txt', 'MESSAGE NEW =>' . PHP_EOL, FILE_APPEND);
-        file_put_contents('logs.txt', $secret . PHP_EOL, FILE_APPEND);
-        file_put_contents('logs.txt', var_export($object, true) . PHP_EOL, FILE_APPEND);
+        $user = new User();
+        $arrMsg = explode('vk.com/', $object['body']);
+        if(count($arrMsg) == 2) {
+            $group = new Group();
+            $userData = $group->getUserProfile($arrMsg[1]);
+
+            if($userData !== null) {
+                $fullName = $userData[0]['first_name'] . ' ' . $userData[0]['last_name'];
+                $cover = new Image();
+                $cover->updateCoverPhoto($userData[0]['photo_200'], $fullName);
+                $group->setCoverPhoto();
+                $user->sendMessage($object['user_id'], "Обложка успешно обновлена");
+            } else {
+                $user->sendMessage($object['user_id'], "Пользователь не найден");
+            }
+        } else {
+            $user->sendMessage($object['user_id'], "Не правильный формат ссылки");
+        }
         echo 'OK';
     }
 
