@@ -30,7 +30,7 @@ final class Core implements ErrorCode
                     $this->checkTypeService();
                     break;
                 default:
-                    $this->showError(self::NOT_FOUND_TYPE_REQUEST, "Не найден тип {$this->arrPathInfo[0]}");
+                    $this->showError(self::NOT_FOUND_TYPE_REQUEST, "Не найден тип");
                     break;
             }
         } else {
@@ -45,10 +45,14 @@ final class Core implements ErrorCode
                 case "vk":
                     $handler = new WebHooks\VKHook();
                     $data = json_decode(file_get_contents('php://input'));
-                    $handler->parse($data);
+                    if($data->secret === \ConfigApp::VK_SECRET) {
+                        $handler->parse($data);
+                    } else {
+                        $this->showError(self::NOT_VALID_SECRET_KEY_VK, "Не правильный секретный ключ");
+                    }
                     break;
                 default:
-                    $this->showError(self::NOT_FOUND_SERVICE, "Не найден сервис {$this->arrPathInfo[1]}");
+                    $this->showError(self::NOT_FOUND_SERVICE, "Не найден сервис");
                     break;
             }
         } else {
