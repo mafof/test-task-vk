@@ -1,7 +1,10 @@
 <?php
 namespace App\WebHooks;
 
+use App\Helpers\Group;
+use App\Helpers\Image;
 use VK\CallbackApi\Server\VKCallbackApiServerHandler;
+use VK\Client\VKApiClient;
 
 class VKHook extends VKCallbackApiServerHandler
 {
@@ -27,9 +30,13 @@ class VKHook extends VKCallbackApiServerHandler
 
     public function groupJoin(int $group_id, ?string $secret, array $object)
     {
-        file_put_contents('logs.txt', 'GROUP JOIN =>' . PHP_EOL, FILE_APPEND);
-        file_put_contents('logs.txt', $secret . PHP_EOL, FILE_APPEND);
-        file_put_contents('logs.txt', var_export($object, true) . PHP_EOL, FILE_APPEND);
+        $group = new Group();
+        $userData = $group->getUserProfile($object['user_id']);
+        $fullName = $userData[0]['first_name'] . ' ' . $userData[0]['last_name'];
+
+        $cover = new Image();
+        $cover->updateCoverPhoto($userData[0]['photo_200'], $fullName);
+        $group->setCoverPhoto();
         echo 'OK';
     }
 }

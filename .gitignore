@@ -1,3 +1,5 @@
 ConfigApp.php
 vendor/*
 .idea/*
+error_logs.txt
+logs.txt
